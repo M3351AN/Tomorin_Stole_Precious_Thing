@@ -24,4 +24,8 @@ endif()
 
 add_executable(TOMORIN TOMORIN.c app.rc)
 
+set_target_properties(TOMORIN PROPERTIES
+        LINK_FLAGS "/SUBSYSTEM:WINDOWS"
+)
+
 target_link_libraries(TOMORIN -lwinmm)
