@@ -358,17 +358,18 @@ void GenerateKey(int version, int time_encoded, char* output) {
   random_chars[1] = kCharSet[rand() % 34];
 
   unsigned int base_value = StringToValue(random_chars);
-
+  unsigned int licence_count_magic = 1 ^ 0x4755; // 1~797
+  unsigned int expire_days_magic = 0 ^ 0x3FD; // 0~3652, 0 = nolimit
+  unsigned int maintain_days_magic = 3652 ^ 0x935; // 1~3652
   char parts[8][5] = {0};
-
   ValueToString(version ^ (base_value & 0xFF) ^ 0xBF, 2, parts[0]);
-  ValueToString(base_value ^ 0x89, 2, parts[1]);
-  ValueToString((base_value & 0xFF) ^ 0x76, 2, parts[2]);
-  ValueToString((base_value & 0xFF) ^ 0xDE, 2, parts[3]);
-  ValueToString(base_value ^ 0x4448, 4, parts[4]);
+  ValueToString(base_value ^ 0x88, 2, parts[1]);
+  ValueToString((base_value & 0xFF) ^ 0x77, 2, parts[2]);
+  ValueToString((base_value & 0xFF) ^ 0xDD, 2, parts[3]);
+  ValueToString(base_value ^ licence_count_magic, 4, parts[4]);
   ValueToString(time_encoded ^ base_value ^ 0x7CC1, 4, parts[5]);
-  ValueToString((base_value & 0xFF) ^ 0x3FD, 3, parts[6]);
-  ValueToString(base_value ^ 0xE13, 3, parts[7]);
+  ValueToString((base_value & 0xFF) ^ expire_days_magic, 3, parts[6]);
+  ValueToString((base_value & 0xFF) ^ maintain_days_magic, 3, parts[7]);
 
   char data_part[25] = {0};
   for (int i = 0; i < 8; i++) {
