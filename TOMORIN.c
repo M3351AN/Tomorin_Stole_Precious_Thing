@@ -28,6 +28,9 @@ static const char kCharSet[] = "DY14UF3RHWCXLQB6IKJT9N5AGS2PM8VZ7E";
 enum { kBuffersNumber = 4, kBufferSize = 4096 };
 
 static HWND g_edit_key_handle;
+static HWND g_edit_licence_handle;
+static HWND g_edit_expire_handle;
+static HWND g_edit_maintain_handle;
 static int g_current_version = 2;
 static HBRUSH g_background_brush_handle;
 
@@ -352,15 +355,40 @@ int EncodeTime() {
          32 * (16 * time_info->tm_year + time_info->tm_mon - 1647);
 }
 
+unsigned int GetUserValue(HWND edit_handle, unsigned int default_value, unsigned int max_value) {
+  char buffer[32];
+  GetWindowText(edit_handle, buffer, sizeof(buffer));
+
+  if (strlen(buffer) == 0) {
+    return default_value;
+  }
+
+  unsigned int value = (unsigned int)strtoul(buffer, NULL, 10);
+
+  if (value > max_value) {
+    value = max_value;
+    char value_str[32];
+    _itoa(value, value_str, 10);
+    SetWindowText(edit_handle, value_str);
+  }
+
+  return value;
+}
+
 void GenerateKey(int version, int time_encoded, char* output) {
   char random_chars[3] = {0};
   random_chars[0] = kCharSet[rand() % 34];
   random_chars[1] = kCharSet[rand() % 34];
 
   unsigned int base_value = StringToValue(random_chars);
-  unsigned int licence_count_magic = 1 ^ 0x4755; // 1~797
-  unsigned int expire_days_magic = 0 ^ 0x3FD; // 0~3652, 0 = nolimit
-  unsigned int maintain_days_magic = 3652 ^ 0x935; // 1~3652
+  unsigned int licence_count = GetUserValue(g_edit_licence_handle, 1, 797);
+  unsigned int expire_days = GetUserValue(g_edit_expire_handle, 0, 3652);
+  unsigned int maintain_days = GetUserValue(g_edit_maintain_handle, 3652, 3652);
+
+  unsigned int licence_count_magic = licence_count ^ 0x4755;
+  unsigned int expire_days_magic = expire_days ^ 0x3FD;
+  unsigned int maintain_days_magic = maintain_days ^ 0x935;
+
   char parts[8][5] = {0};
   ValueToString(version ^ (base_value & 0xFF) ^ 0xBF, 2, parts[0]);
   ValueToString(base_value ^ 0x88, 2, parts[1]);
@@ -441,41 +469,63 @@ LRESULT CALLBACK WndProc(HWND window_handle, UINT message, WPARAM w_param,
                    WS_VISIBLE | WS_CHILD, 250, 15, 200, 20, window_handle, NULL,
                    NULL, NULL);
 
-      HWND radio_button_1 =
+      CreateWindow("STATIC", "Licence Count (1-797):",
+                   WS_VISIBLE | WS_CHILD, 250, 45, 150, 20, window_handle, NULL,
+                   NULL, NULL);
+      g_edit_licence_handle = CreateWindow(
+          "EDIT", "797", WS_VISIBLE | WS_CHILD | WS_BORDER, 400, 45, 50, 20,
+          window_handle, NULL, NULL, NULL);
+
+      CreateWindow("STATIC", "Expire Days (0-3652):",
+                   WS_VISIBLE | WS_CHILD, 250, 70, 150, 20, window_handle, NULL,
+                   NULL, NULL);
+      g_edit_expire_handle = CreateWindow(
+          "EDIT", "0", WS_VISIBLE | WS_CHILD | WS_BORDER, 400, 70, 50, 20,
+          window_handle, NULL, NULL, NULL);
+      CreateWindow("STATIC", "Maintain (1-3652):",
+                   WS_VISIBLE | WS_CHILD, 250, 95, 150, 20, window_handle, NULL,
+                   NULL, NULL);
+      g_edit_maintain_handle = CreateWindow(
+          "EDIT", "3652", WS_VISIBLE | WS_CHILD | WS_BORDER, 400, 95, 50, 20,
+          window_handle, NULL, NULL, NULL);
+      const HWND radio_button_1 =
           CreateWindow("BUTTON", "AIDA64 Business",
-                       WS_VISIBLE | WS_CHILD | BS_AUTORADIOBUTTON, 250, 45, 150,
+                       WS_VISIBLE | WS_CHILD | BS_AUTORADIOBUTTON, 250, 120, 150,
                        20, window_handle, (HMENU)1, NULL, NULL);
-      HWND radio_button_2 =
+      const HWND radio_button_2 =
           CreateWindow("BUTTON", "AIDA64 Extreme",
-                       WS_VISIBLE | WS_CHILD | BS_AUTORADIOBUTTON, 250, 70, 150,
+                       WS_VISIBLE | WS_CHILD | BS_AUTORADIOBUTTON, 250, 145, 150,
                        20, window_handle, (HMENU)2, NULL, NULL);
-      HWND radio_button_3 =
+      const HWND radio_button_3 =
           CreateWindow("BUTTON", "AIDA64 Engineer",
-                       WS_VISIBLE | WS_CHILD | BS_AUTORADIOBUTTON, 250, 95, 150,
+                       WS_VISIBLE | WS_CHILD | BS_AUTORADIOBUTTON, 250, 170, 150,
                        20, window_handle, (HMENU)3, NULL, NULL);
-      HWND radio_button_4 =
+      const HWND radio_button_4 =
           CreateWindow("BUTTON", "AIDA64 Network Audit",
-                       WS_VISIBLE | WS_CHILD | BS_AUTORADIOBUTTON, 250, 120,
+                       WS_VISIBLE | WS_CHILD | BS_AUTORADIOBUTTON, 250, 195,
                        150, 20, window_handle, (HMENU)4, NULL, NULL);
 
       g_edit_key_handle = CreateWindow(
-          "EDIT", "", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_READONLY, 250, 155,
+          "EDIT", "", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_READONLY, 250, 220,
           200, 25, window_handle, NULL, NULL, NULL);
 
-      HWND generate_button =
-          CreateWindow("BUTTON", "Generate", WS_VISIBLE | WS_CHILD, 250, 195,
+      const HWND generate_button =
+          CreateWindow("BUTTON", "Generate", WS_VISIBLE | WS_CHILD, 400, 120,
                        60, 30, window_handle, (HMENU)5, NULL, NULL);
-      HWND about_button =
-          CreateWindow("BUTTON", "About", WS_VISIBLE | WS_CHILD, 320, 195, 60,
+      const HWND about_button =
+          CreateWindow("BUTTON", "About", WS_VISIBLE | WS_CHILD, 400, 152, 60,
                        30, window_handle, (HMENU)7, NULL, NULL);
-      HWND exit_button =
-          CreateWindow("BUTTON", "Exit", WS_VISIBLE | WS_CHILD, 390, 195, 60,
+      const HWND exit_button =
+          CreateWindow("BUTTON", "Exit", WS_VISIBLE | WS_CHILD, 400, 184, 60,
                        30, window_handle, (HMENU)6, NULL, NULL);
 
       SendMessage(radio_button_1, WM_SETFONT, (WPARAM)font_handle, TRUE);
       SendMessage(radio_button_2, WM_SETFONT, (WPARAM)font_handle, TRUE);
       SendMessage(radio_button_3, WM_SETFONT, (WPARAM)font_handle, TRUE);
       SendMessage(radio_button_4, WM_SETFONT, (WPARAM)font_handle, TRUE);
+      SendMessage(g_edit_licence_handle, WM_SETFONT, (WPARAM)font_handle, TRUE);
+      SendMessage(g_edit_expire_handle, WM_SETFONT, (WPARAM)font_handle, TRUE);
+      SendMessage(g_edit_maintain_handle, WM_SETFONT, (WPARAM)font_handle, TRUE);
       SendMessage(g_edit_key_handle, WM_SETFONT, (WPARAM)font_handle, TRUE);
       SendMessage(generate_button, WM_SETFONT, (WPARAM)font_handle, TRUE);
       SendMessage(about_button, WM_SETFONT, (WPARAM)font_handle, TRUE);
@@ -524,7 +574,7 @@ LRESULT CALLBACK WndProc(HWND window_handle, UINT message, WPARAM w_param,
                       L"Author: \u6e1f\u96f2\n"
                       L"Released to Public Domain\n"
                       L"Tomorin Stole Precious Thing!!\n"
-                      L"Version v1.0.0",
+                      L"Version v1.1.0",
                       L"About", MB_OK | MB_ICONINFORMATION);
           break;
       }
@@ -613,7 +663,7 @@ int WINAPI WinMain(HINSTANCE instance_handle, HINSTANCE prev_instance_handle,
 
   g_background_brush_handle = CreateSolidBrush(RGB(240, 240, 240));
 
-  HWND window_handle = CreateWindow("TOMORIN", "Tomorin Stole Precious Thing!!",
+  HWND window_handle = CreateWindow("TOMORIN", "Tomorin Stole Precious Thing!! v1.1.0",
                                     WS_POPUP | WS_VISIBLE, 300, 300, 480, 250,
                                     NULL, NULL, instance_handle, NULL);
   SetTimer(window_handle, 1, 361, NULL);
