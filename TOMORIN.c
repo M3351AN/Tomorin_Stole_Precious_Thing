@@ -18,7 +18,7 @@
 #include "./stb_image.h"
 
 #define M4P_IMPLEMENTATION
-#include "./SilhouetteDance.h"
+#include "./hitoshizuku.h"
 #include "./gugugag.h"
 #include "./m4p.h"
 
@@ -212,7 +212,7 @@ void AudioCleanup(AudioContext* audio) {
 }
 
 void StartBackgroundMusic() {
-  if (!m4p_LoadFromData(kSilhouetteDance, 70611, 44100, 16384)) {
+  if (!m4p_LoadFromData(kHitoShizuku, sizeof(kHitoShizuku), 44100, 16384)) {
     return;
   }
 
@@ -574,7 +574,9 @@ LRESULT CALLBACK WndProc(HWND window_handle, UINT message, WPARAM w_param,
                       L"Author: \u6e1f\u96f2\n"
                       L"Released to Public Domain\n"
                       L"Tomorin Stole Precious Thing!!\n"
-                      L"Version v1.1.0",
+                      L"Version v1.1.1\n"
+                      L"BGM: \u58f1\u96eb\u7a7a"
+                      L"  Copyright (C) 2024 by qiaokong\n",
                       L"About", MB_OK | MB_ICONINFORMATION);
           break;
       }
@@ -663,10 +665,10 @@ int WINAPI WinMain(HINSTANCE instance_handle, HINSTANCE prev_instance_handle,
 
   g_background_brush_handle = CreateSolidBrush(RGB(240, 240, 240));
 
-  HWND window_handle = CreateWindow("TOMORIN", "Tomorin Stole Precious Thing!! v1.1.0",
+  HWND window_handle = CreateWindow("TOMORIN", "Tomorin Stole Precious Thing!! v1.1.1",
                                     WS_POPUP | WS_VISIBLE, 300, 300, 480, 250,
                                     NULL, NULL, instance_handle, NULL);
-  SetTimer(window_handle, 1, 361, NULL);
+  SetTimer(window_handle, 1, 294, NULL);
   ShowWindow(window_handle, show_command);
   UpdateWindow(window_handle);
 
