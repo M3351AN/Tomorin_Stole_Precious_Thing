@@ -6,7 +6,11 @@
 This software is a tool designed to enhance the interoperability and compatibility between the operating system and AIDA64. 
 **You must obtain a copy of the AIDA64 software from a legitimate source**
 
+## Precautions
 
+- If your eyes are blinded by the glare during use, please bring your own sunglasses.
+
+- If the generated cdkey actually works, please uninstall it immediately to avoid breaking the law.
 
 
 <img width="2539" height="1349" alt="Screenshot 2025-10-31 213523" src="https://github.com/user-attachments/assets/5cca4bc8-c2d8-49b8-8bbb-631960d017f4" />
